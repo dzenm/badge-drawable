@@ -35,4 +35,4 @@
 
 ![avatar](https://github.com/dzenm/badge-drawable/tree/master/screenshot/badgedrawable.jpg)
 
-[下载APK](https://github.com/dzenm/badge-drawable/tree/master/apk/app-debug.apk)
+[下载APK](https://raw.githubusercontent.com/dzenm/badge-drawable/master/apk/app-debug.apk)

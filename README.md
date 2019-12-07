@@ -32,7 +32,5 @@
     imageView.setImageBitmap(bitmap);
     ```
 
-
-![avatar](https://github.com/dzenm/badge-drawable/blob/master/screenshot/badgedrawable.jpg?raw=true =1280*720)
-
+<img src="https://github.com/dzenm/badge-drawable/blob/master/screenshot/badgedrawable.jpg?raw=true" width="50%">
 [下载APK](https://raw.githubusercontent.com/dzenm/badge-drawable/master/apk/app-debug.apk)

@@ -23,7 +23,7 @@ import androidx.core.content.ContextCompat;
 
 /**
  * <pre>
- * Bitmap bitmap = new BadgeHelper.Builder(getApplicationContext())
+ * Bitmap bitmap = new BadgeDrawable.Builder(getApplicationContext())
  *        .setDrawable(drawableResId)
  *        .setCircle(isCircle)
  *        .setInner(isInner)
@@ -33,7 +33,7 @@ import androidx.core.content.ContextCompat;
  * imageViewBadge.setImageBitmap(bitmap);
  * </pre>
  */
-public class BadgeHelper {
+public class BadgeDrawable {
 
     private static final int DEFAULT_COUNT = 0;
     private static final int MIDDLE_COUNT = 99;
@@ -89,7 +89,7 @@ public class BadgeHelper {
         int BOTTOM_RIGHT = 4;
     }
 
-    private BadgeHelper(Context context) {
+    private BadgeDrawable(Context context) {
         mContext = context;
         mTextColor = getColor(android.R.color.white);
         mBadgeColor = getColor(android.R.color.holo_red_light);
@@ -284,11 +284,11 @@ public class BadgeHelper {
 
     public static class Builder {
 
-        private BadgeHelper mBadgeHelper;
+        private BadgeDrawable mBadgeDrawable;
         private Bitmap mBitmap;
 
         public Builder(Context context) {
-            mBadgeHelper = new BadgeHelper(context);
+            mBadgeDrawable = new BadgeDrawable(context);
         }
 
         /**
@@ -296,7 +296,7 @@ public class BadgeHelper {
          * @return this
          */
         public Builder setTextColor(@ColorRes int textColor) {
-            mBadgeHelper.mTextColor = getColor(textColor);
+            mBadgeDrawable.mTextColor = getColor(textColor);
             return this;
         }
 
@@ -305,7 +305,7 @@ public class BadgeHelper {
          * @return this
          */
         public Builder setBadgeColor(@ColorRes int badgeColor) {
-            mBadgeHelper.mBadgeColor = getColor(badgeColor);
+            mBadgeDrawable.mBadgeColor = getColor(badgeColor);
             return this;
         }
 
@@ -315,7 +315,7 @@ public class BadgeHelper {
          * @return this
          */
         public Builder setBadgeSize(float badgeSize) {
-            mBadgeHelper.mBadgeSize = dp2px(badgeSize);
+            mBadgeDrawable.mBadgeSize = dp2px(badgeSize);
             return this;
         }
 
@@ -324,7 +324,7 @@ public class BadgeHelper {
          * @return this
          */
         public Builder setBadgeBorderColor(@ColorRes int badgeBorderColor) {
-            mBadgeHelper.mBadgeBorderColor = getColor(badgeBorderColor);
+            mBadgeDrawable.mBadgeBorderColor = getColor(badgeBorderColor);
             return this;
         }
 
@@ -333,7 +333,7 @@ public class BadgeHelper {
          * @return this
          */
         public Builder setBadgeBorderSize(float badgeBorderSize) {
-            mBadgeHelper.mBadgeBorderSize = dp2px(badgeBorderSize);
+            mBadgeDrawable.mBadgeBorderSize = dp2px(badgeBorderSize);
             return this;
         }
 
@@ -342,7 +342,7 @@ public class BadgeHelper {
          * @return this
          */
         public Builder setBadgePosition(@BadgePosition int badgePosition) {
-            mBadgeHelper.mBadgePosition = badgePosition;
+            mBadgeDrawable.mBadgePosition = badgePosition;
             return this;
         }
 
@@ -351,7 +351,7 @@ public class BadgeHelper {
          * @return this
          */
         public Builder setCircle(boolean circle) {
-            mBadgeHelper.isCircle = circle;
+            mBadgeDrawable.isCircle = circle;
             return this;
         }
 
@@ -360,7 +360,7 @@ public class BadgeHelper {
          * @return this
          */
         public Builder setInner(boolean inner) {
-            mBadgeHelper.isInner = inner;
+            mBadgeDrawable.isInner = inner;
             return this;
         }
 
@@ -371,7 +371,7 @@ public class BadgeHelper {
          * @return this
          */
         public Builder setNumber(int number) {
-            mBadgeHelper.mNumber = number;
+            mBadgeDrawable.mNumber = number;
             return this;
         }
 
@@ -412,10 +412,10 @@ public class BadgeHelper {
          * @return 创建一个附带Badge的Biamtp
          */
         public Bitmap build() {
-            if (mBadgeHelper.getNumber() < 0) {
+            if (mBadgeDrawable.getNumber() < 0) {
                 return mBitmap;
             } else {
-                return mBadgeHelper.buildBitmap(mBitmap);
+                return mBadgeDrawable.buildBitmap(mBitmap);
             }
         }
 

@@ -9,7 +9,7 @@ import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import com.dzenm.library.BadgeHelper;
+import com.dzenm.library.BadgeDrawable;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -63,20 +63,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         RadioGroup positionRadioGroup = findViewById(R.id.positionRadioGroup);
-        int positionBadge = BadgeHelper.BadgePosition.TOP_LEFT;
+        int positionBadge = BadgeDrawable.BadgePosition.TOP_LEFT;
         if (positionRadioGroup.getCheckedRadioButtonId() == R.id.tl) {
-            positionBadge = BadgeHelper.BadgePosition.TOP_LEFT;
+            positionBadge = BadgeDrawable.BadgePosition.TOP_LEFT;
         } else if (positionRadioGroup.getCheckedRadioButtonId() == R.id.tr){
-            positionBadge = BadgeHelper.BadgePosition.TOP_RIGHT;
+            positionBadge = BadgeDrawable.BadgePosition.TOP_RIGHT;
         }else if (positionRadioGroup.getCheckedRadioButtonId() == R.id.bl){
-            positionBadge = BadgeHelper.BadgePosition.BOTTOM_LEFT;
+            positionBadge = BadgeDrawable.BadgePosition.BOTTOM_LEFT;
         }else if (positionRadioGroup.getCheckedRadioButtonId() == R.id.br){
-            positionBadge = BadgeHelper.BadgePosition.BOTTOM_RIGHT;
+            positionBadge = BadgeDrawable.BadgePosition.BOTTOM_RIGHT;
         }
 
         ImageView imageViewBadge = findViewById(R.id.imageViewBadge);
 
-        Bitmap bitmap = new BadgeHelper.Builder(getApplicationContext())
+        Bitmap bitmap = new BadgeDrawable.Builder(getApplicationContext())
                 .setDrawable(drawableResId)
                 .setCircle(isCircle)
                 .setInner(isInner)

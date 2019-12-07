@@ -33,6 +33,6 @@
     ```
 
 
-![avatar](https://github.com/dzenm/badge-drawable/tree/master/screenshot/badgedrawable.jpg)
+![avatar](https://github.com/dzenm/badge-drawable/blob/master/screenshot/badgedrawable.jpg?raw=true)
 
 [下载APK](https://raw.githubusercontent.com/dzenm/badge-drawable/master/apk/app-debug.apk)

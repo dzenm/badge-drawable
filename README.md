@@ -33,6 +33,6 @@
     ```
 
 
-![avatar](https://github.com/dzenm/badge-drawable/blob/master/screenshot/badgedrawable.jpg?raw=true)
+![avatar](https://github.com/dzenm/badge-drawable/blob/master/screenshot/badgedrawable.jpg?raw=true =1280*720)
 
 [下载APK](https://raw.githubusercontent.com/dzenm/badge-drawable/master/apk/app-debug.apk)

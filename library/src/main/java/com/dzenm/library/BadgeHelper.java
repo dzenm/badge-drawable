@@ -11,23 +11,26 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 import android.util.TypedValue;
-import android.widget.ImageView;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.ColorRes;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.IntDef;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 
 /**
  * <pre>
- * BadgeHelper.Builder(applicationContext)
- *         .setImageView(imageViewBadge)
- *         .setNumber(number)
- *         .setBadgePosition(position)
- *         .build()
+ * Bitmap bitmap = new BadgeHelper.Builder(getApplicationContext())
+ *        .setDrawable(drawableResId)
+ *        .setCircle(isCircle)
+ *        .setInner(isInner)
+ *        .setNumber(number)
+ *        .setBadgePosition(positionBadge)
+ *        .build();
+ * imageViewBadge.setImageBitmap(bitmap);
  * </pre>
  */
 public class BadgeHelper {
@@ -36,25 +39,54 @@ public class BadgeHelper {
     private static final int MIDDLE_COUNT = 99;
     private static final int MAXIMUM_COUNT = 999;
 
+    private static final float DEFAULT_BADGE_SIZE = dp2px(20);
+    private static final float DEFAULT_BADGE_CIRCLE_SIZE = dp2px(16);
+    private static final float DEFAULT_BODER_SIZE = dp2px(2);
+
     private static Context mContext;
 
-    private @ColorInt
-    int mTextColor, mBadgeColor, mBadgeBorderColor;
+    /**
+     * Badge文本颜色, Badge背景颜色, Badge边框颜色
+     */
+    @ColorInt
+    private int mTextColor, mBadgeColor, mBadgeBorderColor;
 
-    private float mBadgeSize = dp2px(20), mBadgeBorderSize = dp2px(2);
+    /**
+     * Badge所在的位置
+     */
+    @BadgePosition
+    private int mBadgePosition = BadgePosition.TOP_RIGHT;
 
-    private @BadgePosition
-    int mBadgePosition = BadgePosition.TOP_RIGHT;
+    /**
+     * Badge大小, Badge边框大小
+     */
+    private float mBadgeSize, mBadgeBorderSize;
 
+    /**
+     * Badge显示的数量, 默认为{@link #DEFAULT_COUNT}, 只显示红点, 当大于0时, 显示具体的数字,
+     * 默认当大于999时, 显示999+, 通过 {@link #mMaximumNumber} 可以设置最大显示的数量,
+     * 可以设置 {@link #MIDDLE_COUNT}, {@link #MAXIMUM_COUNT}
+     */
     private int mNumber = DEFAULT_COUNT, mMaximumNumber = MAXIMUM_COUNT;
 
-    private boolean isCircle = false;
+    /**
+     * {@link #isCircle} 为false时, 显示为椭圆形, 为true时, 显示为圆形
+     * {@link #isInner} 为false时, Badge显示在外面, 为true时, Badge显示在里面
+     */
+    private boolean isCircle, isInner;
 
-    @IntDef()
+    @IntDef({
+            BadgePosition.TOP_LEFT,
+            BadgePosition.TOP_RIGHT,
+            BadgePosition.BOTTOM_LEFT,
+            BadgePosition.BOTTOM_RIGHT
+    })
     @Retention(RetentionPolicy.SOURCE)
     public @interface BadgePosition {
-        int TOP_RIGHT = 1;
-        int BOTTOM_RIGHT = 2;
+        int TOP_LEFT = 1;
+        int TOP_RIGHT = 2;
+        int BOTTOM_LEFT = 3;
+        int BOTTOM_RIGHT = 4;
     }
 
     private BadgeHelper(Context context) {
@@ -62,50 +94,23 @@ public class BadgeHelper {
         mTextColor = getColor(android.R.color.white);
         mBadgeColor = getColor(android.R.color.holo_red_light);
         mBadgeBorderColor = getColor(android.R.color.white);
-    }
-
-    private void setTextColor(int textColor) {
-        mTextColor = textColor;
-    }
-
-    private void setBadgeColor(int badgeColor) {
-        mBadgeColor = badgeColor;
-    }
-
-    private void setBadgeSize(float badgeSize) {
-        mBadgeSize = badgeSize;
-    }
-
-    private void setBadgeBorderColor(int badgeBorderColor) {
-        mBadgeBorderColor = badgeBorderColor;
-    }
-
-    private void setBadgeBorderSize(float badgeBorderSize) {
-        mBadgeBorderSize = badgeBorderSize;
-    }
-
-    private void setBadgePosition(@BadgePosition int badgePosition) {
-        mBadgePosition = badgePosition;
-    }
-
-    private void setCircle(boolean circle) {
-        isCircle = circle;
+        isCircle = false;
+        isInner = true;
+        if (isCircle) {
+            mBadgeSize = DEFAULT_BADGE_CIRCLE_SIZE;
+        } else {
+            mBadgeSize = DEFAULT_BADGE_SIZE;
+        }
+        mBadgeBorderSize = DEFAULT_BODER_SIZE;
     }
 
     private int getNumber() {
         return mNumber;
     }
 
-    private void setNumber(int number) {
-        mNumber = number;
-    }
-
-    private void setMaximumNumber(int maximumNumber) {
-        mMaximumNumber = maximumNumber;
-    }
-
     private Bitmap buildBitmap(Bitmap bitmap) {
         // 计算显示的文本内容
+        mMaximumNumber = isInner || isCircle? MIDDLE_COUNT : MAXIMUM_COUNT;
         String numberText = mNumber > mMaximumNumber ? mMaximumNumber + "+" : String.valueOf(mNumber);
 
         // 计算显示文本大小和区域
@@ -119,35 +124,79 @@ public class BadgeHelper {
         // 测量Badge的宽高
         float badgeWidth, badgeHeight;
         if (isDefaultCount()) {
-            badgeWidth = badgeHeight = mBadgeSize / 2f;
+            badgeWidth = badgeHeight = dp2px(10);
         } else if (isCircle) {
             badgeWidth = badgeHeight = mBadgeSize;
         } else if (isDigits()) {
-            badgeWidth = badgeHeight = textBounds.height() * 2f;
+            badgeWidth = badgeHeight = textBounds.height() + dp2px(8);
         } else {
-            badgeHeight = textBounds.height() * 2f;
-            badgeWidth = textBounds.width() + badgeHeight / 2f;
+            badgeHeight = textBounds.height() + dp2px(6);
+            badgeWidth = textBounds.width() + dp2px(6);
         }
-
 
         // 测量Badge的所在的位置
         int width = bitmap.getWidth(), height = bitmap.getHeight();
         RectF badgeRect = null;
-        if (mBadgePosition == BadgePosition.TOP_RIGHT) {
-            badgeRect = new RectF(width * 1.3f,
-                    mBadgeBorderSize,
-                    width * 1.3f + badgeWidth,
-                    badgeHeight + mBadgeBorderSize);
-        } else if (mBadgePosition == BadgePosition.BOTTOM_RIGHT) {
-            badgeRect = new RectF(
-                    width * 1.3f,
-                    height - badgeHeight,
-                    width * 1.3f + badgeWidth,
-                    height * 1f);
+        if (isInner) {
+            if (mBadgePosition == BadgePosition.TOP_RIGHT) {
+                badgeRect = new RectF(width - badgeWidth,
+                        0,
+                        width,
+                        badgeHeight);
+            } else if (mBadgePosition == BadgePosition.BOTTOM_RIGHT) {
+                badgeRect = new RectF(width - badgeWidth,
+                        height - badgeHeight,
+                        width,
+                        height);
+            } else if (mBadgePosition == BadgePosition.TOP_LEFT) {
+                badgeRect = new RectF(0,
+                        0,
+                        badgeWidth,
+                        badgeHeight);
+            } else if (mBadgePosition == BadgePosition.BOTTOM_LEFT) {
+                badgeRect = new RectF(0,
+                        height - badgeHeight ,
+                         badgeWidth,
+                        height);
+            }
+        } else {
+            if (mBadgePosition == BadgePosition.TOP_RIGHT) {
+                badgeRect = new RectF(width * 3 / 4 + badgeWidth,
+                        0,
+                        width * 3 / 4 + badgeWidth * 2,
+                        badgeHeight);
+            } else if (mBadgePosition == BadgePosition.BOTTOM_RIGHT) {
+                badgeRect = new RectF(
+                        width * 3 / 4 + badgeWidth,
+                        height - badgeHeight,
+                        width * 3 / 4 + badgeWidth * 2,
+                        height);
+            } else if (mBadgePosition == BadgePosition.TOP_LEFT) {
+                badgeRect = new RectF(
+                        width * 1 / 4,
+                        0,
+                        width * 1 / 4 + badgeWidth,
+                        badgeHeight);
+            } else if (mBadgePosition == BadgePosition.BOTTOM_LEFT) {
+                badgeRect = new RectF(
+                        width * 1 / 4,
+                        height - badgeHeight,
+                        width * 1 / 4 + badgeWidth,
+                        height);
+            }
         }
 
         // 创建带有Badge的Bitmap
-        Bitmap outputBitmap = Bitmap.createBitmap(width * 2, height, Bitmap.Config.ARGB_8888);
+        Bitmap outputBitmap;
+        if (isInner) {
+            outputBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        } else {
+            outputBitmap = Bitmap.createBitmap(
+                    (int) (width + 2 * badgeWidth),
+                    height,
+                    Bitmap.Config.ARGB_8888
+            );
+        }
         Canvas canvas = new Canvas(outputBitmap);
 
         // 绘制原图片
@@ -157,9 +206,9 @@ public class BadgeHelper {
         paint.setColor(mBadgeColor);
 
         Rect rect = new Rect(0, 0, width, height);
-        canvas.translate(width / 2f, 0f);
+        if (!isInner) { canvas.translate(badgeWidth, 0f); }
         canvas.drawBitmap(bitmap, rect, rect, paint);
-        canvas.translate(-width / 2f, 0f);
+        if (!isInner) { canvas.translate(-badgeWidth, 0f); }
 
         // 绘制Badge的边框
         if (mBadgeBorderSize > 0) {
@@ -190,12 +239,14 @@ public class BadgeHelper {
      */
     private float numberTextPercent() {
         if (isCircle) {
-            if (mNumber > MAXIMUM_COUNT) {
-                return 0.4f;
-            } else if (mNumber > MIDDLE_COUNT) {
-                return 0.5f;
-            } else {
+            if (isInner) {
                 return 0.6f;
+            } else {
+                if (mNumber > MIDDLE_COUNT) {
+                    return 0.5f;
+                } else {
+                    return 0.6f;
+                }
             }
         } else {
             return 0.6f;
@@ -210,7 +261,7 @@ public class BadgeHelper {
     }
 
     /**
-     * 绘制背景
+     * 绘制Badge背景
      */
     private void drawBackground(Canvas canvas, RectF badgeRect, Paint paint) {
         if (isCircle || isDigits()) {   // 是否绘制椭圆的Badge
@@ -221,61 +272,95 @@ public class BadgeHelper {
         }
     }
 
-    /**
-     * 是否是个位的数量
-     */
     private boolean isDigits() {
+        // 是否是个位的数量
         return mNumber <= MIDDLE_COUNT % 10 && mNumber > DEFAULT_COUNT;
     }
 
-    /**
-     * 是否是默认数量
-     */
     private boolean isDefaultCount() {
+        // 是否是默认数量
         return mNumber == DEFAULT_COUNT;
     }
 
     public static class Builder {
 
         private BadgeHelper mBadgeHelper;
-        private ImageView mImageView;
+        private Bitmap mBitmap;
 
         public Builder(Context context) {
             mBadgeHelper = new BadgeHelper(context);
         }
 
-        public Builder setTextColor(int textColor) {
-            mBadgeHelper.setTextColor(getColor(textColor));
+        /**
+         * @param textColor Badge文本的颜色, 默认为白色
+         * @return this
+         */
+        public Builder setTextColor(@ColorRes int textColor) {
+            mBadgeHelper.mTextColor = getColor(textColor);
             return this;
         }
 
-        public Builder setBadgeColor(int badgeColor) {
-            mBadgeHelper.setBadgeColor(getColor(badgeColor));
+        /**
+         * @param badgeColor Badge背景颜色, 默认为红色
+         * @return this
+         */
+        public Builder setBadgeColor(@ColorRes int badgeColor) {
+            mBadgeHelper.mBadgeColor = getColor(badgeColor);
             return this;
         }
 
+        /**
+         * @param badgeSize Badge的大小, 圆形时默认大小为 {@link #DEFAULT_BADGE_CIRCLE_SIZE},
+         *                  椭圆时默认大小为 {@link #DEFAULT_BADGE_SIZE},
+         * @return this
+         */
         public Builder setBadgeSize(float badgeSize) {
-            mBadgeHelper.setBadgeSize(dp2px(badgeSize));
+            mBadgeHelper.mBadgeSize = dp2px(badgeSize);
             return this;
         }
 
-        public Builder setBadgeBorderColor(int badgeBorderColor) {
-            mBadgeHelper.setBadgeBorderColor(getColor(badgeBorderColor));
+        /**
+         * @param badgeBorderColor Badge边框颜色, 默认为白色
+         * @return this
+         */
+        public Builder setBadgeBorderColor(@ColorRes int badgeBorderColor) {
+            mBadgeHelper.mBadgeBorderColor = getColor(badgeBorderColor);
             return this;
         }
 
+        /**
+         * @param badgeBorderSize Badge边框大, 默认为 {@link #DEFAULT_BODER_SIZE}
+         * @return this
+         */
         public Builder setBadgeBorderSize(float badgeBorderSize) {
-            mBadgeHelper.setBadgeBorderSize(dp2px(badgeBorderSize));
+            mBadgeHelper.mBadgeBorderSize = dp2px(badgeBorderSize);
             return this;
         }
 
+        /**
+         * @param badgePosition Badge显示的位置, 可选值见 {@link BadgePosition}, 默认在右上角
+         * @return this
+         */
         public Builder setBadgePosition(@BadgePosition int badgePosition) {
-            mBadgeHelper.setBadgePosition(badgePosition);
+            mBadgeHelper.mBadgePosition = badgePosition;
             return this;
         }
 
+        /**
+         * @param circle Badge显示的形状是否是圆形, 默认为否
+         * @return this
+         */
         public Builder setCircle(boolean circle) {
-            mBadgeHelper.setCircle(circle);
+            mBadgeHelper.isCircle = circle;
+            return this;
+        }
+
+        /**
+         * @param inner Badge显示是否在Drawable的内部, 默认为是
+         * @return this
+         */
+        public Builder setInner(boolean inner) {
+            mBadgeHelper.isInner = inner;
             return this;
         }
 
@@ -286,37 +371,52 @@ public class BadgeHelper {
          * @return this
          */
         public Builder setNumber(int number) {
-            mBadgeHelper.setNumber(number);
+            mBadgeHelper.mNumber = number;
             return this;
         }
 
-        public Builder setMaximumNumber(int maximumNumber) {
-            mBadgeHelper.setMaximumNumber(maximumNumber);
+        /**
+         * @param resId 需要添加Badge的Image Resource ID
+         * @return this
+         */
+        public Builder setDrawable(@DrawableRes int resId) {
+            setDrawable(mContext.getResources().getDrawable(resId,null));
             return this;
         }
 
-        public Builder setImageView(ImageView imageView) {
-            mImageView = imageView;
-            return this;
-        }
-
-        public void build() {
-            Drawable drawable = mImageView.getDrawable();
-            if (drawable == null) {
-                throw new NullPointerException("please set src for imageView");
-            }
-            Bitmap bitmap;
-            drawable = DrawableCompat.wrap(drawable);
+        /**
+         * @param drawable 需要添加Badge的Drawable
+         * @return this
+         */
+        public Builder setDrawable(Drawable drawable) {
             if (drawable instanceof BitmapDrawable) {
-                bitmap = ((BitmapDrawable) drawable).getBitmap();
+                mBitmap = ((BitmapDrawable) drawable).getBitmap();
             } else {
-                bitmap = createBitmapFromDrawable(drawable);
+                mBitmap = createBitmapFromDrawable(drawable);
             }
+            return this;
+        }
 
-            if (mBadgeHelper.getNumber() >= 0) {
-                bitmap = mBadgeHelper.buildBitmap(bitmap);
+        /**
+         * @param bitmap 需要添加Badge的Bitmap
+         * @return this
+         */
+        public Builder setDrawable(Bitmap bitmap) {
+            mBitmap = bitmap;
+            return this;
+        }
+
+        /**
+         * 在创建一个带有Badge的Bitmap之前, 需要使用一个可以附着Badge的Drawable, 通过
+         * {@link #setDrawable(int)} 方法添加一个Drawable, 创建一个最简单的Badge
+         * @return 创建一个附带Badge的Biamtp
+         */
+        public Bitmap build() {
+            if (mBadgeHelper.getNumber() < 0) {
+                return mBitmap;
+            } else {
+                return mBadgeHelper.buildBitmap(mBitmap);
             }
-            mImageView.setImageDrawable(new BitmapDrawable(mContext.getResources(), bitmap));
         }
 
         /**

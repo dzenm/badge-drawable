@@ -11,6 +11,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 import android.util.TypedValue;
+import android.widget.ImageView;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -31,17 +32,24 @@ import androidx.core.content.ContextCompat;
  *        .setBadgePosition(positionBadge)
  *        .build();
  * imageViewBadge.setImageBitmap(bitmap);
+ * or
+ * new BadgeDrawable.Builder(getApplicationContext())
+ *                 .setDrawable(drawableResId)
+ *        .setCircle(isCircle)
+ *        .setNumber(number)
+ *        .setBadgeBorderSize(badgeBorderSize)
+ *        .setBadgePosition(positionBadge)
+ *        .build(imageViewBadge);
  * </pre>
  */
 public class BadgeDrawable {
 
     private static final int DEFAULT_COUNT = 0;
-    private static final int MIDDLE_COUNT = 99;
-    private static final int MAXIMUM_COUNT = 999;
+    private static final int MAXIMUM_COUNT = 99;
 
     private static final float DEFAULT_BADGE_SIZE = dp2px(20);
     private static final float DEFAULT_BADGE_CIRCLE_SIZE = dp2px(16);
-    private static final float DEFAULT_BODER_SIZE = dp2px(2);
+    private static final float DEFAULT_BODER_SIZE = dp2px(4);
 
     private static Context mContext;
 
@@ -64,16 +72,14 @@ public class BadgeDrawable {
 
     /**
      * Badge显示的数量, 默认为{@link #DEFAULT_COUNT}, 只显示红点, 当大于0时, 显示具体的数字,
-     * 默认当大于999时, 显示999+, 通过 {@link #mMaximumNumber} 可以设置最大显示的数量,
-     * 可以设置 {@link #MIDDLE_COUNT}, {@link #MAXIMUM_COUNT}
+     * 默认当大于 {@link #MAXIMUM_COUNT} 时, 通过 {@link #mMaximumNumber} 可以设置最大显示的数量
      */
     private int mNumber = DEFAULT_COUNT, mMaximumNumber = MAXIMUM_COUNT;
 
     /**
      * {@link #isCircle} 为false时, 显示为椭圆形, 为true时, 显示为圆形
-     * {@link #isInner} 为false时, Badge显示在外面, 为true时, Badge显示在里面
      */
-    private boolean isCircle, isInner;
+    private boolean isCircle;
 
     @IntDef({
             BadgePosition.TOP_LEFT,
@@ -95,7 +101,6 @@ public class BadgeDrawable {
         mBadgeColor = getColor(android.R.color.holo_red_light);
         mBadgeBorderColor = getColor(android.R.color.white);
         isCircle = false;
-        isInner = true;
         if (isCircle) {
             mBadgeSize = DEFAULT_BADGE_CIRCLE_SIZE;
         } else {
@@ -108,14 +113,15 @@ public class BadgeDrawable {
         return mNumber;
     }
 
-    private Bitmap buildBitmap(Bitmap bitmap) {
+    private Bitmap buildBitmap(Bitmap oldBiamap) {
         // 计算显示的文本内容
-        mMaximumNumber = isInner || isCircle? MIDDLE_COUNT : MAXIMUM_COUNT;
+        mMaximumNumber = MAXIMUM_COUNT;
         String numberText = mNumber > mMaximumNumber ? mMaximumNumber + "+" : String.valueOf(mNumber);
 
         // 计算显示文本大小和区域
         Rect textBounds = new Rect();
-        float numberTextSize = numberTextPercent() * numberTextBaseValue();
+        // 计算数量文本大小所占百分比, 计算数量文本的基值
+        float numberTextSize = 0.6f * (mBadgeSize - mBadgeBorderSize);
         TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setColor(mTextColor);
         textPaint.setTextSize(numberTextSize);
@@ -123,81 +129,45 @@ public class BadgeDrawable {
 
         // 测量Badge的宽高
         float badgeWidth, badgeHeight;
-        if (isDefaultCount()) {
+        if (isDefaultCount()) {         // 数字为0, 显示小圆点
             badgeWidth = badgeHeight = dp2px(10);
-        } else if (isCircle) {
+        } else if (isCircle) {          // 圆形Badge, 宽高相等
             badgeWidth = badgeHeight = mBadgeSize;
-        } else if (isDigits()) {
+        } else if (isDigits()) {        // 数字为个位数, 宽高相等
             badgeWidth = badgeHeight = textBounds.height() + dp2px(8);
-        } else {
-            badgeHeight = textBounds.height() + dp2px(6);
-            badgeWidth = textBounds.width() + dp2px(6);
+        } else {                        // 椭圆形Badge, 以数量文字大小+6
+            badgeHeight = textBounds.height() + dp2px(8);
+            badgeWidth = textBounds.width() + dp2px(8);
         }
 
         // 测量Badge的所在的位置
-        int width = bitmap.getWidth(), height = bitmap.getHeight();
+        int width = oldBiamap.getWidth(), height = oldBiamap.getHeight();
         RectF badgeRect = null;
-        if (isInner) {
-            if (mBadgePosition == BadgePosition.TOP_RIGHT) {
-                badgeRect = new RectF(width - badgeWidth,
-                        0,
-                        width,
-                        badgeHeight);
-            } else if (mBadgePosition == BadgePosition.BOTTOM_RIGHT) {
-                badgeRect = new RectF(width - badgeWidth,
-                        height - badgeHeight,
-                        width,
-                        height);
-            } else if (mBadgePosition == BadgePosition.TOP_LEFT) {
-                badgeRect = new RectF(0,
-                        0,
-                        badgeWidth,
-                        badgeHeight);
-            } else if (mBadgePosition == BadgePosition.BOTTOM_LEFT) {
-                badgeRect = new RectF(0,
-                        height - badgeHeight ,
-                         badgeWidth,
-                        height);
-            }
-        } else {
-            if (mBadgePosition == BadgePosition.TOP_RIGHT) {
-                badgeRect = new RectF(width * 3 / 4 + badgeWidth,
-                        0,
-                        width * 3 / 4 + badgeWidth * 2,
-                        badgeHeight);
-            } else if (mBadgePosition == BadgePosition.BOTTOM_RIGHT) {
-                badgeRect = new RectF(
-                        width * 3 / 4 + badgeWidth,
-                        height - badgeHeight,
-                        width * 3 / 4 + badgeWidth * 2,
-                        height);
-            } else if (mBadgePosition == BadgePosition.TOP_LEFT) {
-                badgeRect = new RectF(
-                        width * 1 / 4,
-                        0,
-                        width * 1 / 4 + badgeWidth,
-                        badgeHeight);
-            } else if (mBadgePosition == BadgePosition.BOTTOM_LEFT) {
-                badgeRect = new RectF(
-                        width * 1 / 4,
-                        height - badgeHeight,
-                        width * 1 / 4 + badgeWidth,
-                        height);
-            }
+        if (mBadgePosition == BadgePosition.TOP_RIGHT) {
+            badgeRect = new RectF(width - badgeWidth,
+                    0,
+                    width,
+                    badgeHeight);
+        } else if (mBadgePosition == BadgePosition.BOTTOM_RIGHT) {
+            badgeRect = new RectF(width - badgeWidth,
+                    height - badgeHeight,
+                    width,
+                    height);
+        } else if (mBadgePosition == BadgePosition.TOP_LEFT) {
+            badgeRect = new RectF(0,
+                    0,
+                    badgeWidth,
+                    badgeHeight);
+        } else if (mBadgePosition == BadgePosition.BOTTOM_LEFT) {
+            badgeRect = new RectF(0,
+                    height - badgeHeight ,
+                    badgeWidth,
+                    height);
         }
 
         // 创建带有Badge的Bitmap
-        Bitmap outputBitmap;
-        if (isInner) {
-            outputBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        } else {
-            outputBitmap = Bitmap.createBitmap(
-                    (int) (width + 2 * badgeWidth),
-                    height,
-                    Bitmap.Config.ARGB_8888
-            );
-        }
-        Canvas canvas = new Canvas(outputBitmap);
+        Bitmap newBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(newBitmap);
 
         // 绘制原图片
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -206,9 +176,7 @@ public class BadgeDrawable {
         paint.setColor(mBadgeColor);
 
         Rect rect = new Rect(0, 0, width, height);
-        if (!isInner) { canvas.translate(badgeWidth, 0f); }
-        canvas.drawBitmap(bitmap, rect, rect, paint);
-        if (!isInner) { canvas.translate(-badgeWidth, 0f); }
+        canvas.drawBitmap(oldBiamap, rect, rect, paint);
 
         // 绘制Badge的边框
         if (mBadgeBorderSize > 0) {
@@ -231,33 +199,7 @@ public class BadgeDrawable {
             float y = badgeRect.centerY() - (textPaint.ascent() + textPaint.descent()) * 0.5f;
             canvas.drawText(numberText, x, y, textPaint);
         }
-        return outputBitmap;
-    }
-
-    /**
-     * 计算数量文本大小所占百分比
-     */
-    private float numberTextPercent() {
-        if (isCircle) {
-            if (isInner) {
-                return 0.6f;
-            } else {
-                if (mNumber > MIDDLE_COUNT) {
-                    return 0.5f;
-                } else {
-                    return 0.6f;
-                }
-            }
-        } else {
-            return 0.6f;
-        }
-    }
-
-    /**
-     * 计算数量文本的基值
-     */
-    private float numberTextBaseValue() {
-        return mBadgeSize - mBadgeBorderSize;
+        return newBitmap;
     }
 
     /**
@@ -274,7 +216,7 @@ public class BadgeDrawable {
 
     private boolean isDigits() {
         // 是否是个位的数量
-        return mNumber <= MIDDLE_COUNT % 10 && mNumber > DEFAULT_COUNT;
+        return mNumber <= MAXIMUM_COUNT % 10 && mNumber > DEFAULT_COUNT;
     }
 
     private boolean isDefaultCount() {
@@ -356,15 +298,6 @@ public class BadgeDrawable {
         }
 
         /**
-         * @param inner Badge显示是否在Drawable的内部, 默认为是
-         * @return this
-         */
-        public Builder setInner(boolean inner) {
-            mBadgeDrawable.isInner = inner;
-            return this;
-        }
-
-        /**
          * @param number {@link #mNumber} 大于 {@link #mMaximumNumber}, 显示{@link #mMaximumNumber}
          *               {@link #mNumber} 等于 {@link #DEFAULT_COUNT}, 显示点
          *               {@link #mNumber} 小于 {@link #DEFAULT_COUNT}, 不显示点
@@ -417,6 +350,15 @@ public class BadgeDrawable {
             } else {
                 return mBadgeDrawable.buildBitmap(mBitmap);
             }
+        }
+
+        /**
+         * 创建一个Badge, 并设置到ImageView中
+         * @param target
+         */
+        public void build(ImageView target) {
+            Bitmap bitmap = build();
+            target.setImageBitmap(bitmap);
         }
 
         /**

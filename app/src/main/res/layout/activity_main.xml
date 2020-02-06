@@ -63,31 +63,6 @@
     </RadioGroup>
 
     <RadioGroup
-        android:id="@+id/innerRadioGroup"
-        android:orientation="horizontal"
-        android:layout_marginTop="20dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <RadioButton
-            android:id="@+id/inner"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="inner" />
-
-        <RadioButton
-            android:id="@+id/notInner"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="not inner" />
-    </RadioGroup>
-
-    <RadioGroup
         android:id="@+id/positionRadioGroup"
         android:orientation="horizontal"
         android:layout_marginTop="20dp"
@@ -128,17 +103,34 @@
 
     </RadioGroup>
 
-    <androidx.appcompat.widget.AppCompatEditText
-        android:id="@+id/et_number"
-        android:inputType="number"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp"
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_marginTop="20dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
-        android:hint="please enter number"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/et_number"
+            android:inputType="number"
+            android:hint="number"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="5dp"
+            android:layout_height="wrap_content" />
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/et_border_size"
+            android:inputType="number"
+            android:hint="border size"
+            android:layout_marginStart="5dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
     <Button
         android:id="@+id/build"
         android:onClick="onClick"

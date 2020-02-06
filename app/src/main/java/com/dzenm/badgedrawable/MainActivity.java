@@ -1,7 +1,7 @@
 package com.dzenm.badgedrawable;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
@@ -14,25 +14,34 @@ import com.dzenm.library.BadgeDrawable;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private EditText etNumber, etBadgeBorderSize;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        etNumber = findViewById(R.id.et_number);
+        etBadgeBorderSize = findViewById(R.id.et_border_size);
+
+        // 获取imei
+        TelephonyManager manager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+        String imei = manager.getDeviceId();
+//        etNumber.setText(imei);
     }
 
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.build) {
-            EditText editText = findViewById(R.id.et_number);
-            String number = editText.getText().toString();
+            String number = etNumber.getText().toString();
             if (TextUtils.isEmpty(number)) {
                 Toast.makeText(this, "请输入显示的数量", Toast.LENGTH_SHORT).show();
                 return;
             }
             drawBadge(Integer.valueOf(number));
-        }else if (v.getId() == R.id.reset) {
+        } else if (v.getId() == R.id.reset) {
             drawBadge(-1);
         }
     }
@@ -47,42 +56,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         RadioGroup circleRadioGroup = findViewById(R.id.circleRadioGroup);
-        boolean  isCircle;
+        boolean isCircle;
         if (circleRadioGroup.getCheckedRadioButtonId() == R.id.circle) {
             isCircle = true;
         } else {
             isCircle = false;
         }
 
-        RadioGroup innerRadioGroup = findViewById(R.id.innerRadioGroup);
-        boolean  isInner;
-        if (innerRadioGroup.getCheckedRadioButtonId() == R.id.inner) {
-            isInner = true;
-        } else {
-            isInner = false;
-        }
-
         RadioGroup positionRadioGroup = findViewById(R.id.positionRadioGroup);
         int positionBadge = BadgeDrawable.BadgePosition.TOP_LEFT;
         if (positionRadioGroup.getCheckedRadioButtonId() == R.id.tl) {
             positionBadge = BadgeDrawable.BadgePosition.TOP_LEFT;
-        } else if (positionRadioGroup.getCheckedRadioButtonId() == R.id.tr){
+        } else if (positionRadioGroup.getCheckedRadioButtonId() == R.id.tr) {
             positionBadge = BadgeDrawable.BadgePosition.TOP_RIGHT;
-        }else if (positionRadioGroup.getCheckedRadioButtonId() == R.id.bl){
+        } else if (positionRadioGroup.getCheckedRadioButtonId() == R.id.bl) {
             positionBadge = BadgeDrawable.BadgePosition.BOTTOM_LEFT;
-        }else if (positionRadioGroup.getCheckedRadioButtonId() == R.id.br){
+        } else if (positionRadioGroup.getCheckedRadioButtonId() == R.id.br) {
             positionBadge = BadgeDrawable.BadgePosition.BOTTOM_RIGHT;
         }
 
         ImageView imageViewBadge = findViewById(R.id.imageViewBadge);
 
-        Bitmap bitmap = new BadgeDrawable.Builder(getApplicationContext())
+        int badgeBorderSize = Integer.valueOf(etBadgeBorderSize.getText().toString());
+        new BadgeDrawable.Builder(getApplicationContext())
                 .setDrawable(drawableResId)
                 .setCircle(isCircle)
-                .setInner(isInner)
                 .setNumber(number)
+                .setBadgeBorderSize(badgeBorderSize)
                 .setBadgePosition(positionBadge)
-                .build();
-        imageViewBadge.setImageBitmap(bitmap);
+                .build(imageViewBadge);
     }
 }

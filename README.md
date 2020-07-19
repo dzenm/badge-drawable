@@ -1,6 +1,6 @@
-[![](https://jitpack.io/v/dzenm/badge-drawable.svg)](https://jitpack.io/#dzenm/badge-drawable)
-### 为Drawable添加一个Badge
----
+### 为Drawable添加一个Badge [![](https://jitpack.io/v/dzenm/badge-drawable.svg)](https://jitpack.io/#dzenm/badge-drawable)
+
+--- 
 #### 使用方法: 
 1. 在项目的build.gradle文件中添加
     ```
